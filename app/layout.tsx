@@ -15,8 +15,15 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Isida AI - Голосовой Помощник",
-  description: "AI-powered голосовой ассистент с памятью разговоров",
+  title: "Ardak AI - Voice Assistant",
+  description: "AI-powered voice assistant with conversation memory and vision capabilities",
+  keywords: ["AI", "voice assistant", "Gemini", "speech recognition", "vision AI"],
+  authors: [{ name: "Ulagat", url: "https://github.com/ulacoder" }],
+  openGraph: {
+    title: "Ardak AI - Voice Assistant",
+    description: "AI-powered voice assistant with conversation memory and vision capabilities",
+    type: "website",
+  },
 };
 
 export default function RootLayout({
