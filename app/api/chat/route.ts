@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const systemPrompt = `Ты - Ардак, умный AI-ассистент. Общайся четко, по делу, но по-человечески.
+    const systemPrompt = `Ты - Isida, умный AI-ассистент. Общайся четко, по делу, но по-человечески.
 Отвечай на вопросы полно и понятно. Не обрывай ответы.
 Запоминай информацию о пользователе и используй её.
 Отвечай 2-3 предложения. Без лишних эмоций и "как дела?".`;
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
 
     // Add conversation history
     for (const msg of recentMessages) {
-      const role = msg.role === 'user' ? 'Пользователь' : 'Ардак';
+      const role = msg.role === 'user' ? 'Пользователь' : 'Isida';
       contentParts.push({ text: `${role}: ${msg.content}\n` });
 
       // If user message has an image, include it
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    contentParts.push({ text: "\nОтветь как Ардак:" });
+    contentParts.push({ text: "\nОтветь как Isida:" });
 
     const result = await model.generateContent(contentParts);
     const aiResponse = result.response.text();

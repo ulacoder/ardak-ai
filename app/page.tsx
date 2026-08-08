@@ -44,14 +44,14 @@ export default function Home() {
   useEffect(() => {
     setMounted(true);
 
-    const saved = localStorage.getItem('ardak-memory');
+    const saved = localStorage.getItem('isida-memory');
     if (saved) {
       try {
         const parsedMessages = JSON.parse(saved);
         if (Array.isArray(parsedMessages) && parsedMessages.length > 0) {
           setMessages(parsedMessages);
         } else {
-          localStorage.removeItem('ardak-memory');
+          localStorage.removeItem('isida-memory');
         }
       } catch (e) {
         localStorage.removeItem('isida-memory');
@@ -161,7 +161,7 @@ export default function Home() {
       const updatedMessages = [...newMessages, aiMessage];
 
       setMessages(updatedMessages);
-      localStorage.setItem('ardak-memory', JSON.stringify(updatedMessages));
+      localStorage.setItem('isida-memory', JSON.stringify(updatedMessages));
 
       // Speak response with ElevenLabs
       await speak(data.response);
@@ -538,7 +538,7 @@ export default function Home() {
             className="relative w-28 h-28 mb-6"
           >
             <div className="relative w-28 h-28 rounded-full overflow-hidden ring-2 ring-cyan-400/50 shadow-xl shadow-cyan-500/30">
-              <Image src="/logo.jpg" alt="Ардак" fill className="object-cover" priority sizes="112px" />
+              <Image src="/logo.jpg" alt="Isida" fill className="object-cover" priority sizes="112px" />
             </div>
           </motion.div>
 
@@ -556,7 +556,7 @@ export default function Home() {
               animation: 'gradient 3s linear infinite'
             }}
           >
-            ARDAK
+            ISIDA
           </motion.h1>
 
           <motion.div

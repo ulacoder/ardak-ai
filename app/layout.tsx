@@ -15,7 +15,7 @@ const spaceMono = Space_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Ардак AI - Голосовой Помощник",
+  title: "Isida AI - Голосовой Помощник",
   description: "AI-powered голосовой ассистент с памятью разговоров",
 };
 
