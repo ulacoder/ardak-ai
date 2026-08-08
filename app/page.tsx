@@ -3,20 +3,22 @@
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic, MicOff, Trash2, Volume2, Sparkles, Zap, Brain, Cpu } from 'lucide-react';
+import { Mic, MicOff, Trash2, Volume2, Sparkles, Zap, Brain, Cpu, Image as ImageIcon, X } from 'lucide-react';
 
 export default function Home() {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [textInput, setTextInput] = useState('');
-  const [messages, setMessages] = useState<Array<{role: string, content: string}>>([]);
+  const [messages, setMessages] = useState<Array<{role: string, content: string, image?: string}>>([]);
   const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [audioInitialized, setAudioInitialized] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Initialize audio on first user interaction (for mobile)
   const initAudio = () => {
@@ -130,10 +132,16 @@ export default function Home() {
 
     initAudio(); // Ensure audio is ready before response
 
-    const newMessages = [...messages, { role: 'user', content: text }];
+    const newMessage: any = { role: 'user', content: text };
+    if (selectedImage) {
+      newMessage.image = selectedImage;
+    }
+
+    const newMessages = [...messages, newMessage];
     setMessages(newMessages);
     setTranscript('');
     setTextInput('');
+    setSelectedImage(null);
     setIsLoading(true);
 
     try {
@@ -167,8 +175,26 @@ export default function Home() {
 
   const handleTextSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (textInput.trim()) {
-      sendMessage(textInput.trim());
+    if (textInput.trim() || selectedImage) {
+      sendMessage(textInput.trim() || 'Что на изображении?');
+    }
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSelectedImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -727,7 +753,38 @@ export default function Home() {
             transition={{ delay: 0.8 }}
             className="w-full max-w-2xl mt-8"
           >
+            {selectedImage && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="mb-3 relative inline-block"
+              >
+                <img src={selectedImage} alt="Preview" className="h-24 w-24 object-cover rounded-xl border-2 border-cyan-500" />
+                <button
+                  onClick={removeImage}
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </motion.div>
+            )}
             <form onSubmit={handleTextSubmit} className="flex gap-3">
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept="image/*"
+                onChange={handleImageSelect}
+                className="hidden"
+              />
+              <motion.button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="px-4 py-4 bg-black/40 hover:bg-black/60 backdrop-blur-xl border border-cyan-400/30 rounded-full transition-all"
+              >
+                <ImageIcon className="w-5 h-5 text-cyan-400" />
+              </motion.button>
               <input
                 type="text"
                 value={textInput}
@@ -738,7 +795,7 @@ export default function Home() {
               />
               <motion.button
                 type="submit"
-                disabled={isLoading || !textInput.trim()}
+                disabled={isLoading || (!textInput.trim() && !selectedImage)}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="px-8 py-4 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold rounded-full disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/30"
@@ -773,6 +830,9 @@ export default function Home() {
                               : 'bg-gradient-to-br from-gray-900 to-gray-800 text-cyan-100 border border-cyan-400/20 shadow-lg'
                           }`}
                         >
+                          {msg.image && (
+                            <img src={msg.image} alt="User upload" className="mb-2 max-w-full h-auto rounded-lg" />
+                          )}
                           <p className="text-sm leading-relaxed font-medium">{msg.content}</p>
                         </div>
                       </motion.div>

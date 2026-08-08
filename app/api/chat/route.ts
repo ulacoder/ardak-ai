@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     }
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
+      model: "gemini-1.5-flash",
       generationConfig: {
         temperature: 0.9,
         topP: 0.95,
@@ -28,22 +28,34 @@ export async function POST(req: NextRequest) {
 Отвечай 2-3 предложения. Без лишних эмоций и "как дела?".`;
 
     const recentMessages = messages.slice(-10);
-    const conversationHistory = recentMessages
-      .map((msg: any) => `${msg.role === 'user' ? 'Пользователь' : 'Ардак'}: ${msg.content}`)
-      .join('\n');
 
-    const lastMessage = recentMessages[recentMessages.length - 1].content;
+    // Build content parts for Gemini vision
+    const contentParts: any[] = [];
 
-    const fullPrompt = `${systemPrompt}
+    // Add system prompt
+    contentParts.push({ text: systemPrompt + "\n\nИстория разговора:\n" });
 
-История разговора:
-${conversationHistory}
+    // Add conversation history
+    for (const msg of recentMessages) {
+      const role = msg.role === 'user' ? 'Пользователь' : 'Ардак';
+      contentParts.push({ text: `${role}: ${msg.content}\n` });
 
-Текущий вопрос: ${lastMessage}
+      // If user message has an image, include it
+      if (msg.role === 'user' && msg.image) {
+        const base64Data = msg.image.split(',')[1];
+        const mimeType = msg.image.split(':')[1].split(';')[0];
+        contentParts.push({
+          inlineData: {
+            data: base64Data,
+            mimeType: mimeType
+          }
+        });
+      }
+    }
 
-Ответь как Ардак:`;
+    contentParts.push({ text: "\nОтветь как Ардак:" });
 
-    const result = await model.generateContent(fullPrompt);
+    const result = await model.generateContent(contentParts);
     const aiResponse = result.response.text();
 
     return NextResponse.json({ response: aiResponse });
