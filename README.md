@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ardak AI - Voice Assistant
 
-## Getting Started
+AI-powered voice assistant with conversation memory, speech recognition, and vision capabilities using Google's Gemini 2.0.
 
-First, run the development server:
+## 🎯 Features
+
+- **Voice Input/Output** - Real-time speech recognition and text-to-speech
+- **Conversation Memory** - Persistent chat history saved locally
+- **Vision AI** - Upload images for multimodal AI analysis
+- **Mobile Optimized** - Full iOS/Android support with audio initialization
+- **Dark Theme** - Cyberpunk-inspired UI with smooth animations
+- **Fast Response** - Powered by Gemini 2.0 Flash for instant replies
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+ 
+- Google AI API key ([Get one here](https://aistudio.google.com/app/apikey))
+
+### Installation
+
+```bash
+npm install
+```
+
+### Configuration
+
+Create `.env.local`:
+
+```env
+GOOGLE_AI_API_KEY=your_api_key_here
+```
+
+### Development
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🛠️ Tech Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Framework:** Next.js 16 (App Router)
+- **AI Model:** Google Gemini 2.0 Flash
+- **UI:** Tailwind CSS, Framer Motion
+- **Icons:** Lucide React
+- **Language:** TypeScript
 
-## Learn More
+## 📁 Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+ardak-ai/
+├── app/
+│   ├── api/           # API routes
+│   ├── utils/         # Helper functions and services
+│   ├── types/         # TypeScript interfaces
+│   ├── __tests__/     # Unit tests
+│   ├── page.tsx       # Main chat interface
+│   └── layout.tsx     # Root layout
+├── public/            # Static assets
+└── package.json       # Dependencies
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🧪 Testing
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm test
+```
 
-## Deploy on Vercel
+## 📄 License
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+MIT License - Ulagat (@ulacoder)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+Built with Next.js and Google Gemini AI
