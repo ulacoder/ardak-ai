@@ -5,6 +5,10 @@ const VOICE_ID = process.env.ELEVENLABS_VOICE_ID || 'EXAVITQu4vr4xnSDxMaL'; // D
 
 export async function POST(req: NextRequest) {
   try {
+    if (!ELEVENLABS_API_KEY) {
+      throw new Error('ELEVENLABS_API_KEY not configured');
+    }
+
     const { text } = await req.json();
 
     console.log('TTS Request:', { text, voiceId: VOICE_ID });
