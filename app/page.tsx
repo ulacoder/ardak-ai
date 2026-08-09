@@ -162,11 +162,11 @@ export default function Home() {
 
       setMessages(updatedMessages);
 
-      // Try to save to localStorage, ignore quota errors
+      // Try to save to localStorage, silently ignore any storage errors
       try {
         localStorage.setItem('isida-memory', JSON.stringify(updatedMessages));
       } catch (storageErr) {
-        console.warn('Failed to save to localStorage (quota exceeded):', storageErr);
+        console.warn('Failed to save to localStorage:', storageErr);
         // Silently continue - the conversation still works
       }
 
@@ -174,7 +174,10 @@ export default function Home() {
       await speak(data.response);
     } catch (err) {
       console.error('Send message error:', err);
-      alert('Ошибка: ' + err);
+      // Only show alert for actual API/network errors, not storage issues
+      if (!(err instanceof DOMException && err.name === 'QuotaExceededError')) {
+        alert('Ошибка: ' + err);
+      }
     } finally {
       setIsLoading(false);
     }
