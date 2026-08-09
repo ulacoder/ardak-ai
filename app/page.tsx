@@ -161,7 +161,14 @@ export default function Home() {
       const updatedMessages = [...newMessages, aiMessage];
 
       setMessages(updatedMessages);
-      localStorage.setItem('isida-memory', JSON.stringify(updatedMessages));
+
+      // Try to save to localStorage, ignore quota errors
+      try {
+        localStorage.setItem('isida-memory', JSON.stringify(updatedMessages));
+      } catch (storageErr) {
+        console.warn('Failed to save to localStorage (quota exceeded):', storageErr);
+        // Silently continue - the conversation still works
+      }
 
       // Speak response with ElevenLabs
       await speak(data.response);
