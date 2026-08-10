@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const TTS_API_URL = process.env.TTS_API_URL || 'https://gtts-backend.onrender.com';
+const TTS_API_URL = process.env.TTS_API_URL || 'https://isida-ai-backend.onrender.com';
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,14 +9,7 @@ export async function POST(req: NextRequest) {
     console.log('TTS Request:', { text });
 
     const response = await fetch(
-      `${TTS_API_URL}/tts`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text }),
-      }
+      `${TTS_API_URL}/speak?text=${encodeURIComponent(text)}`
     );
 
     if (!response.ok) {
