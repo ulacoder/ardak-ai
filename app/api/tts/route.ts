@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const COQUI_API_URL = process.env.COQUI_API_URL || 'https://monthly-plywood-knickers.ngrok-free.dev';
+const TTS_API_URL = process.env.TTS_API_URL || 'https://gtts-backend.onrender.com';
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
     console.log('TTS Request:', { text });
 
     const response = await fetch(
-      `${COQUI_API_URL}/tts`,
+      `${TTS_API_URL}/tts`,
       {
         method: 'POST',
         headers: {
@@ -21,8 +21,8 @@ export async function POST(req: NextRequest) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Coqui API error:', response.status, errorText);
-      throw new Error(`Coqui API error: ${response.status}`);
+      console.error('TTS API error:', response.status, errorText);
+      throw new Error(`TTS API error: ${response.status}`);
     }
 
     const audioBuffer = await response.arrayBuffer();
