@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'AIzaSyAQ.Ab8RN6IeKHGNr65UY262bFdUev6BABEnWDzYImpOE9_LRqOqRA');
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'AIzaSyAQ.Ab8RN6LDoRjM_4xgoP4AXxrLSzB4u5SWAgBt1J5fp-ZWoq9msw');
 
 export interface GenerateOptions {
   temperature?: number;
