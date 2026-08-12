@@ -421,19 +421,16 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-black relative overflow-hidden font-mono">
-      {/* Animated grid background */}
+      {/* Background image */}
       <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-950 via-purple-950 to-indigo-950 opacity-60" />
-        <div
-          className="absolute inset-0 opacity-20"
-          style={{
-            backgroundImage: `
-              linear-gradient(to right, rgba(59, 130, 246, 0.3) 1px, transparent 1px),
-              linear-gradient(to bottom, rgba(147, 51, 234, 0.3) 1px, transparent 1px)
-            `,
-            backgroundSize: '50px 50px'
-          }}
+        <Image
+          src="/background.jpg"
+          alt="Background"
+          fill
+          className="object-cover opacity-40"
+          priority
         />
+        <div className="absolute inset-0 bg-black/50" />
       </div>
 
       {/* Floating orbs - reduced for mobile performance */}
@@ -542,15 +539,6 @@ export default function Home() {
               <Zap className="w-8 h-8 text-blue-400" />
             </motion.div>
           </div>
-
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="relative w-28 h-28 mb-6"
-          >
-            <div className="relative w-28 h-28 rounded-full overflow-hidden ring-2 ring-cyan-400/50 shadow-xl shadow-cyan-500/30">
-              <Image src="/logo.jpg" alt="Isida" fill className="object-cover" priority sizes="112px" />
-            </div>
-          </motion.div>
 
           <motion.h1
             initial={{ opacity: 0 }}
