@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquarePlus, Trash2, X, Menu } from 'lucide-react';
+import { MessageSquarePlus, Trash2, X, Menu, Search } from 'lucide-react';
 import { Chat } from '../types';
 import { useState } from 'react';
 
@@ -21,6 +21,13 @@ export default function ChatSidebar({
   onDeleteChat,
 }: ChatSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Filter chats based on search query
+  const filteredChats = chats.filter(chat =>
+    chat.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    chat.messages.some(msg => msg.content.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
   const formatDate = (timestamp: number) => {
     const date = new Date(timestamp);
@@ -85,6 +92,20 @@ export default function ChatSidebar({
           </button>
         </div>
 
+        {/* Search Bar */}
+        <div className="p-3 border-b border-cyan-400/10">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-cyan-400/50" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Поиск чатов..."
+              className="w-full pl-10 pr-4 py-2 bg-black/40 border border-cyan-400/30 rounded-lg text-cyan-100 placeholder-cyan-400/50 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 text-sm"
+            />
+          </div>
+        </div>
+
         {/* New Chat Button */}
         <div className="p-3">
           <motion.button
@@ -104,16 +125,16 @@ export default function ChatSidebar({
         {/* Chat List */}
         <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-2">
           <AnimatePresence>
-            {chats.length === 0 ? (
+            {filteredChats.length === 0 ? (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 className="text-center text-cyan-400/50 text-sm mt-8"
               >
-                Нет чатов
+                {searchQuery ? 'Ничего не найдено' : 'Нет чатов'}
               </motion.div>
             ) : (
-              chats.map((chat) => (
+              filteredChats.map((chat) => (
                 <motion.div
                   key={chat.id}
                   initial={{ opacity: 0, x: -20 }}

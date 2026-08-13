@@ -24,12 +24,13 @@ export const metadata: Metadata = {
     description: "AI-powered voice assistant with conversation memory and vision capabilities",
     type: "website",
   },
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({
