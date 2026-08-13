@@ -430,7 +430,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-black relative overflow-hidden font-mono flex">
+    <div className="min-h-[100dvh] bg-white relative overflow-hidden font-sans flex">
       {/* Chat Sidebar */}
       <ChatSidebar
         chats={chats}
@@ -441,95 +441,7 @@ export default function Home() {
       />
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col relative overflow-hidden">
-        {/* Background */}
-        <div className="absolute inset-0">
-          <Image
-            src="/background.jpg"
-            alt="Background"
-            fill
-            className="object-cover opacity-40"
-            priority
-          />
-          <div className="absolute inset-0 bg-black/50" />
-        </div>
-
-      {/* Floating orbs - reduced for mobile */}
-      {mounted && (
-        <>
-          <motion.div
-            className="absolute w-64 h-64 md:w-96 md:h-96 bg-blue-500 rounded-full blur-3xl opacity-20 hidden md:block"
-            animate={{
-              x: [0, 100, 0],
-              y: [0, -100, 0],
-              scale: [1, 1.2, 1],
-            }}
-            transition={{
-              duration: 20,
-              repeat: Infinity,
-              ease: 'easeInOut'
-            }}
-            style={{ top: '10%', left: '10%' }}
-          />
-          <motion.div
-            className="absolute w-64 h-64 md:w-96 md:h-96 bg-purple-500 rounded-full blur-3xl opacity-20 hidden md:block"
-            animate={{
-              x: [0, -100, 0],
-              y: [0, 100, 0],
-              scale: [1, 1.3, 1],
-            }}
-            transition={{
-              duration: 25,
-              repeat: Infinity,
-              ease: 'easeInOut'
-            }}
-            style={{ bottom: '10%', right: '10%' }}
-          />
-        </>
-      )}
-
-      {/* Animated particles */}
-      {mounted && (
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[...Array(10)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-1 h-1 bg-cyan-400 rounded-full"
-              animate={{
-                x: [Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000), Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000)],
-                y: [Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 1000), Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 1000)],
-                opacity: [0.2, 0.8, 0.2],
-              }}
-              transition={{
-                duration: 10 + Math.random() * 20,
-                repeat: Infinity,
-                repeatType: 'reverse',
-              }}
-              style={{
-                left: Math.random() * 100 + '%',
-                top: Math.random() * 100 + '%',
-              }}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Scan line effect */}
-      <motion.div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: 'linear-gradient(to bottom, transparent 0%, rgba(59, 130, 246, 0.1) 50%, transparent 100%)',
-          height: '100px'
-        }}
-        animate={{
-          y: ['0vh', '100vh']
-        }}
-        transition={{
-          duration: 8,
-          repeat: Infinity,
-          ease: 'linear'
-        }}
-      />
+      <div className="flex-1 flex flex-col relative overflow-hidden bg-white">
 
       {/* Main content - flex column layout */}
       <div className="relative z-10 flex flex-col h-[100dvh]">
@@ -538,34 +450,32 @@ export default function Home() {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="flex-shrink-0 px-4 py-3 flex items-center justify-between border-b border-cyan-400/20 bg-black/30 backdrop-blur-sm"
+          className="flex-shrink-0 px-4 py-3 flex items-center justify-between border-b border-gray-200 bg-white"
         >
-          <div className="flex items-center gap-2 ml-12">
-            <motion.h1
-              className="text-2xl md:text-3xl font-black tracking-wider"
-              style={{
-                background: 'linear-gradient(to right, #00f5ff, #00d4ff, #0084ff)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-              }}
-            >
+          <div className="flex items-center gap-3 ml-12">
+            <Image
+              src="/logo.jpeg"
+              alt="Isida AI Logo"
+              width={40}
+              height={40}
+              className="rounded-full"
+            />
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900">
               ISIDA
-            </motion.h1>
-            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full border border-cyan-400/30 bg-cyan-950/20">
-              <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-              <p className="text-xs font-bold text-cyan-300 tracking-wide">AI</p>
-            </div>
+            </h1>
+            <span className="hidden sm:inline-block px-2 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 rounded-full border border-emerald-200">
+              AI
+            </span>
           </div>
 
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={clearHistory}
-            className="flex items-center gap-2 px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-full border border-red-500/30 text-xs font-bold"
+            className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg border border-gray-300 text-xs font-medium transition-colors"
           >
             <Trash2 className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">ОЧИСТИТЬ</span>
+            <span className="hidden sm:inline">Очистить</span>
           </motion.button>
         </motion.div>
 
@@ -583,15 +493,15 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               className="flex flex-col items-center justify-center h-full text-center px-4"
             >
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-                className="mb-4"
-              >
-                <Sparkles className="w-16 h-16 text-cyan-400" />
-              </motion.div>
-              <h2 className="text-2xl font-bold text-cyan-300 mb-2">Привет! Я ISIDA</h2>
-              <p className="text-cyan-400/70 text-sm">Напиши сообщение или используй голосовой ввод</p>
+              <Image
+                src="/logo.jpeg"
+                alt="Isida AI"
+                width={80}
+                height={80}
+                className="mb-4 rounded-full"
+              />
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Привет! Я ISIDA</h2>
+              <p className="text-gray-500 text-sm">Напиши сообщение или используй голосовой ввод</p>
             </motion.div>
           ) : (
             <AnimatePresence>
@@ -604,10 +514,10 @@ export default function Home() {
                   className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    className={`max-w-[85%] sm:max-w-[75%] p-3 rounded-2xl ${
+                    className={`max-w-[85%] sm:max-w-[75%] p-4 rounded-2xl ${
                       msg.role === 'user'
-                        ? 'bg-gradient-to-br from-cyan-600 via-blue-600 to-purple-600 text-white border border-cyan-400/30 shadow-lg shadow-cyan-500/20'
-                        : 'bg-gradient-to-br from-gray-900 to-gray-800 text-cyan-100 border border-cyan-400/20 shadow-lg'
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-gray-100 text-gray-900 border border-gray-200'
                     }`}
                   >
                     {msg.image && (
@@ -627,9 +537,9 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               className="flex justify-start"
             >
-              <div className="bg-gradient-to-br from-gray-900 to-gray-800 text-cyan-100 border border-cyan-400/20 shadow-lg p-3 rounded-2xl">
+              <div className="bg-gray-100 text-gray-900 border border-gray-200 p-3 rounded-2xl">
                 <div className="flex items-center gap-2">
-                  <Loader2 className="w-4 h-4 animate-spin text-cyan-400" />
+                  <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
                   <span className="text-sm">Думаю...</span>
                 </div>
               </div>
@@ -641,14 +551,14 @@ export default function Home() {
 
         {/* Fixed Input Panel at Bottom */}
         <div
-          className="flex-shrink-0 border-t border-cyan-400/20 bg-black/40 backdrop-blur-xl"
+          className="flex-shrink-0 border-t border-gray-200 bg-white"
           style={{
             paddingBottom: 'env(safe-area-inset-bottom, 16px)',
           }}
         >
           {/* Status Bar */}
           {(isListening || isSpeaking) && (
-            <div className="px-4 py-2 border-b border-cyan-400/10">
+            <div className="px-4 py-2 border-b border-gray-100">
               <AnimatePresence mode="wait">
                 {isListening && (
                   <motion.div
@@ -661,9 +571,9 @@ export default function Home() {
                     <motion.div
                       animate={{ scale: [1, 1.3, 1] }}
                       transition={{ duration: 1, repeat: Infinity }}
-                      className="w-2 h-2 bg-cyan-400 rounded-full"
+                      className="w-2 h-2 bg-emerald-600 rounded-full"
                     />
-                    <span className="text-cyan-300 text-sm font-bold">Слушаю...</span>
+                    <span className="text-gray-700 text-sm font-medium">Слушаю...</span>
                   </motion.div>
                 )}
                 {isSpeaking && (
@@ -674,8 +584,8 @@ export default function Home() {
                     exit={{ opacity: 0, y: -10 }}
                     className="flex items-center gap-2"
                   >
-                    <Volume2 className="w-4 h-4 text-blue-400" />
-                    <span className="text-blue-300 text-sm font-bold">Говорю...</span>
+                    <Volume2 className="w-4 h-4 text-emerald-600" />
+                    <span className="text-gray-700 text-sm font-medium">Говорю...</span>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -687,13 +597,13 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="px-4 py-2 border-b border-cyan-400/10"
+              className="px-4 py-2 border-b border-gray-100"
             >
               <div className="relative inline-block">
-                <img src={selectedImage} alt="Preview" className="h-16 w-16 object-cover rounded-lg border-2 border-cyan-500" />
+                <img src={selectedImage} alt="Preview" className="h-16 w-16 object-cover rounded-lg border-2 border-emerald-500" />
                 <button
                   onClick={removeImage}
-                  className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                  className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -717,9 +627,9 @@ export default function Home() {
                 onClick={() => fileInputRef.current?.click()}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="flex-shrink-0 p-2.5 bg-black/40 hover:bg-black/60 border border-cyan-400/30 rounded-full transition-all"
+                className="flex-shrink-0 p-2.5 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-full transition-colors"
               >
-                <ImageIcon className="w-5 h-5 text-cyan-400" />
+                <ImageIcon className="w-5 h-5 text-gray-700" />
               </motion.button>
 
               {/* Text Input - auto-expanding */}
@@ -744,7 +654,7 @@ export default function Home() {
                   placeholder="Напишите сообщение"
                   disabled={isLoading}
                   rows={1}
-                  className="w-full px-4 py-2.5 bg-black/40 border border-cyan-400/30 rounded-2xl text-cyan-100 placeholder-cyan-400/50 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 disabled:opacity-50 resize-none overflow-y-auto text-sm"
+                  className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent disabled:opacity-50 resize-none overflow-y-auto text-sm"
                   style={{
                     minHeight: '42px',
                     maxHeight: '144px',
@@ -760,11 +670,11 @@ export default function Home() {
                 whileTap={{ scale: 0.95 }}
                 className={`flex-shrink-0 p-2.5 rounded-full transition-all ${
                   isListening
-                    ? 'bg-gradient-to-br from-red-500 to-pink-500 shadow-lg shadow-red-500/30'
-                    : 'bg-black/40 hover:bg-black/60 border border-cyan-400/30'
+                    ? 'bg-red-500 hover:bg-red-600'
+                    : 'bg-gray-100 hover:bg-gray-200 border border-gray-300'
                 }`}
               >
-                <Mic className={`w-5 h-5 ${isListening ? 'text-white' : 'text-cyan-400'}`} />
+                <Mic className={`w-5 h-5 ${isListening ? 'text-white' : 'text-gray-700'}`} />
               </motion.button>
 
               {/* Send Button */}
@@ -773,7 +683,7 @@ export default function Home() {
                 disabled={isLoading || (!textInput.trim() && !selectedImage)}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="flex-shrink-0 p-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 rounded-full disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/30"
+                className="flex-shrink-0 p-2.5 bg-emerald-600 hover:bg-emerald-700 rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <Send className="w-5 h-5 text-white" />
               </motion.button>

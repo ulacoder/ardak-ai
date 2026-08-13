@@ -53,9 +53,9 @@ export default function ChatSidebar({
         onClick={() => setIsOpen(!isOpen)}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        className="fixed top-4 left-4 z-50 p-2 bg-black/60 backdrop-blur-sm border border-cyan-400/30 rounded-lg"
+        className="fixed top-4 left-4 z-50 p-2 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 transition-colors"
       >
-        <Menu className="w-5 h-5 text-cyan-400" />
+        <Menu className="w-5 h-5 text-gray-700" />
       </motion.button>
 
       {/* Backdrop */}
@@ -66,7 +66,7 @@ export default function ChatSidebar({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
           />
         )}
       </AnimatePresence>
@@ -79,29 +79,29 @@ export default function ChatSidebar({
             animate={{ x: 0 }}
             exit={{ x: -320 }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed left-0 top-0 h-full w-80 bg-black/90 backdrop-blur-xl border-r border-cyan-400/20 z-50 flex flex-col shadow-2xl"
+            className="fixed left-0 top-0 h-full w-80 bg-white border-r border-gray-200 z-50 flex flex-col shadow-xl"
           >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-cyan-400/20">
-          <h2 className="text-lg font-bold text-cyan-300">История чатов</h2>
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <h2 className="text-lg font-bold text-gray-900">История чатов</h2>
           <button
             onClick={() => setIsOpen(false)}
-            className="p-1 hover:bg-cyan-400/10 rounded transition-colors"
+            className="p-1 hover:bg-gray-100 rounded transition-colors"
           >
-            <X className="w-5 h-5 text-cyan-400" />
+            <X className="w-5 h-5 text-gray-700" />
           </button>
         </div>
 
         {/* Search Bar */}
-        <div className="p-3 border-b border-cyan-400/10">
+        <div className="p-3 border-b border-gray-100">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-cyan-400/50" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Поиск чатов..."
-              className="w-full pl-10 pr-4 py-2 bg-black/40 border border-cyan-400/30 rounded-lg text-cyan-100 placeholder-cyan-400/50 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 text-sm"
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
             />
           </div>
         </div>
@@ -115,7 +115,7 @@ export default function ChatSidebar({
             }}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="w-full flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 rounded-lg text-white font-bold shadow-lg shadow-cyan-500/20"
+            className="w-full flex items-center gap-2 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 rounded-lg text-white font-semibold shadow-sm transition-colors"
           >
             <MessageSquarePlus className="w-5 h-5" />
             <span>Новый чат</span>
@@ -129,7 +129,7 @@ export default function ChatSidebar({
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="text-center text-cyan-400/50 text-sm mt-8"
+                className="text-center text-gray-400 text-sm mt-8"
               >
                 {searchQuery ? 'Ничего не найдено' : 'Нет чатов'}
               </motion.div>
@@ -142,8 +142,8 @@ export default function ChatSidebar({
                   exit={{ opacity: 0, x: -20 }}
                   className={`group relative p-3 rounded-lg cursor-pointer border transition-all ${
                     currentChatId === chat.id
-                      ? 'bg-cyan-600/20 border-cyan-400/50'
-                      : 'bg-black/40 border-cyan-400/10 hover:border-cyan-400/30 hover:bg-black/60'
+                      ? 'bg-emerald-50 border-emerald-200'
+                      : 'bg-gray-50 border-gray-200 hover:border-gray-300 hover:bg-gray-100'
                   }`}
                   onClick={() => {
                     onSelectChat(chat.id);
@@ -152,13 +152,13 @@ export default function ChatSidebar({
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
-                      <p className="text-cyan-100 text-sm font-medium truncate">
+                      <p className="text-gray-900 text-sm font-medium truncate">
                         {chat.title}
                       </p>
-                      <p className="text-cyan-400/50 text-xs mt-1">
+                      <p className="text-gray-500 text-xs mt-1">
                         {formatDate(chat.updatedAt)}
                       </p>
-                      <p className="text-cyan-400/40 text-xs">
+                      <p className="text-gray-400 text-xs">
                         {chat.messages.length} сообщений
                       </p>
                     </div>
@@ -169,9 +169,9 @@ export default function ChatSidebar({
                       }}
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
-                      className="opacity-0 group-hover:opacity-100 p-1.5 bg-red-500/20 hover:bg-red-500/40 rounded border border-red-500/30 transition-opacity"
+                      className="opacity-0 group-hover:opacity-100 p-1.5 bg-red-50 hover:bg-red-100 rounded border border-red-200 transition-opacity"
                     >
-                      <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                      <Trash2 className="w-3.5 h-3.5 text-red-600" />
                     </motion.button>
                   </div>
                 </motion.div>
