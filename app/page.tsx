@@ -430,7 +430,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-black relative overflow-hidden font-mono flex">
+    <div className="min-h-[100dvh] bg-black relative overflow-hidden font-mono flex">
       {/* Chat Sidebar */}
       <ChatSidebar
         chats={chats}
@@ -532,7 +532,7 @@ export default function Home() {
       />
 
       {/* Main content - flex column layout */}
-      <div className="relative z-10 flex flex-col h-screen">
+      <div className="relative z-10 flex flex-col h-[100dvh]">
         {/* Compact Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -728,6 +728,13 @@ export default function Home() {
                   ref={textareaRef}
                   value={textInput}
                   onChange={(e) => setTextInput(e.target.value)}
+                  onFocus={() => {
+                    // Scroll to bottom when keyboard opens on mobile
+                    setTimeout(() => {
+                      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                      textareaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 300);
+                  }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();
