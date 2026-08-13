@@ -4,8 +4,21 @@ import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mic, Send, Trash2, Volume2, Sparkles, Image as ImageIcon, X, Loader2 } from 'lucide-react';
+import { useChatHistory } from './hooks/useChatHistory';
+import ChatSidebar from './components/ChatSidebar';
 
 export default function Home() {
+  const {
+    chats,
+    currentChatId,
+    currentChat,
+    createNewChat,
+    deleteChat,
+    switchChat,
+    updateChatMessages,
+    clearAllHistory,
+  } = useChatHistory();
+
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [transcript, setTranscript] = useState('');
@@ -21,6 +34,15 @@ export default function Home() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  // Sync messages with current chat
+  useEffect(() => {
+    if (currentChat) {
+      setMessages(currentChat.messages);
+    } else {
+      setMessages([]);
+    }
+  }, [currentChatId, currentChat]);
 
   // Initialize audio on first user interaction (for mobile)
   const initAudio = () => {
@@ -44,18 +66,9 @@ export default function Home() {
   useEffect(() => {
     setMounted(true);
 
-    const saved = localStorage.getItem('isida-memory');
-    if (saved) {
-      try {
-        const parsedMessages = JSON.parse(saved);
-        if (Array.isArray(parsedMessages) && parsedMessages.length > 0) {
-          setMessages(parsedMessages);
-        } else {
-          localStorage.removeItem('isida-memory');
-        }
-      } catch (e) {
-        localStorage.removeItem('isida-memory');
-      }
+    // Create initial chat if none exists
+    if (chats.length === 0) {
+      createNewChat();
     }
 
     const handleFirstInteraction = () => {
@@ -120,7 +133,7 @@ export default function Home() {
       document.removeEventListener('touchstart', handleFirstInteraction);
       document.removeEventListener('click', handleFirstInteraction);
     };
-  }, []);
+  }, [chats.length, createNewChat]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -139,6 +152,12 @@ export default function Home() {
     if (!text.trim()) return;
 
     initAudio();
+
+    // Create new chat if none exists
+    let chatId = currentChatId;
+    if (!chatId) {
+      chatId = createNewChat();
+    }
 
     const newMessage: any = { role: 'user', content: text };
     if (selectedImage) {
@@ -170,10 +189,9 @@ export default function Home() {
 
       setMessages(updatedMessages);
 
-      try {
-        localStorage.setItem('isida-memory', JSON.stringify(updatedMessages));
-      } catch (storageErr) {
-        console.warn('Failed to save to localStorage:', storageErr);
+      // Save to chat history
+      if (chatId) {
+        updateChatMessages(chatId, updatedMessages);
       }
 
       await speak(data.response);
@@ -406,23 +424,35 @@ export default function Home() {
   };
 
   const clearHistory = () => {
-    setMessages([]);
-    localStorage.removeItem('isida-memory');
+    if (currentChatId) {
+      deleteChat(currentChatId);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-black relative overflow-hidden font-mono flex flex-col">
-      {/* Background */}
-      <div className="absolute inset-0">
-        <Image
-          src="/background.jpg"
-          alt="Background"
-          fill
-          className="object-cover opacity-40"
-          priority
-        />
-        <div className="absolute inset-0 bg-black/50" />
-      </div>
+    <div className="min-h-screen bg-black relative overflow-hidden font-mono flex">
+      {/* Chat Sidebar */}
+      <ChatSidebar
+        chats={chats}
+        currentChatId={currentChatId}
+        onNewChat={createNewChat}
+        onSelectChat={switchChat}
+        onDeleteChat={deleteChat}
+      />
+
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col relative overflow-hidden">
+        {/* Background */}
+        <div className="absolute inset-0">
+          <Image
+            src="/background.jpg"
+            alt="Background"
+            fill
+            className="object-cover opacity-40"
+            priority
+          />
+          <div className="absolute inset-0 bg-black/50" />
+        </div>
 
       {/* Floating orbs - reduced for mobile */}
       {mounted && (
@@ -510,7 +540,7 @@ export default function Home() {
           transition={{ duration: 0.5 }}
           className="flex-shrink-0 px-4 py-3 flex items-center justify-between border-b border-cyan-400/20 bg-black/30 backdrop-blur-sm"
         >
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 ml-12">
             <motion.h1
               className="text-2xl md:text-3xl font-black tracking-wider"
               style={{
@@ -744,21 +774,9 @@ export default function Home() {
           </form>
         </div>
       </div>
-
-      <style jsx global>{`
-        @keyframes gradient {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-
-        /* iOS Safari keyboard fix */
-        @supports (-webkit-touch-callout: none) {
-          .min-h-screen {
-            min-height: -webkit-fill-available;
-          }
-        }
-      `}</style>
+      {/* End Main content */}
+      </div>
+      {/* End Main Chat Area */}
     </div>
   );
 }

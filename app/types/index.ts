@@ -28,3 +28,16 @@ export interface ImageUploadResult {
   file: File;
   compressed: boolean;
 }
+
+export interface Chat {
+  id: string;
+  title: string;
+  messages: Message[];
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface ChatHistory {
+  chats: Chat[];
+  currentChatId: string | null;
+}
