@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquarePlus, Trash2, X, Menu, Search } from 'lucide-react';
 import { Chat } from '../types';
-import { useState } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 
 interface ChatSidebarProps {
   chats: Chat[];
@@ -13,7 +13,7 @@ interface ChatSidebarProps {
   onDeleteChat: (chatId: string) => void;
 }
 
-export default function ChatSidebar({
+function ChatSidebar({
   chats,
   currentChatId,
   onNewChat,
@@ -23,13 +23,14 @@ export default function ChatSidebar({
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Filter chats based on search query
-  const filteredChats = chats.filter(chat =>
-    chat.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    chat.messages.some(msg => msg.content.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  // Memoized filter chats based on search query
+  const filteredChats = useMemo(() =>
+    chats.filter(chat =>
+      chat.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      chat.messages.some(msg => msg.content.toLowerCase().includes(searchQuery.toLowerCase()))
+    ), [chats, searchQuery]);
 
-  const formatDate = (timestamp: number) => {
+  const formatDate = useCallback((timestamp: number) => {
     const date = new Date(timestamp);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
@@ -44,7 +45,22 @@ export default function ChatSidebar({
     if (diffDays === 1) return 'Вчера';
     if (diffDays < 7) return `${diffDays} дн назад`;
     return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
-  };
+  }, []);
+
+  const handleNewChat = useCallback(() => {
+    onNewChat();
+    setIsOpen(false);
+  }, [onNewChat]);
+
+  const handleSelectChat = useCallback((chatId: string) => {
+    onSelectChat(chatId);
+    setIsOpen(false);
+  }, [onSelectChat]);
+
+  const handleDeleteChat = useCallback((e: React.MouseEvent, chatId: string) => {
+    e.stopPropagation();
+    onDeleteChat(chatId);
+  }, [onDeleteChat]);
 
   return (
     <>
@@ -109,10 +125,7 @@ export default function ChatSidebar({
         {/* New Chat Button */}
         <div className="p-3">
           <motion.button
-            onClick={() => {
-              onNewChat();
-              setIsOpen(false);
-            }}
+            onClick={handleNewChat}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className="w-full flex items-center gap-2 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 rounded-lg text-white font-semibold shadow-sm transition-colors"
@@ -145,10 +158,7 @@ export default function ChatSidebar({
                       ? 'bg-emerald-50 border-emerald-200'
                       : 'bg-gray-50 border-gray-200 hover:border-gray-300 hover:bg-gray-100'
                   }`}
-                  onClick={() => {
-                    onSelectChat(chat.id);
-                    setIsOpen(false);
-                  }}
+                  onClick={() => handleSelectChat(chat.id)}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
@@ -163,10 +173,7 @@ export default function ChatSidebar({
                       </p>
                     </div>
                     <motion.button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDeleteChat(chat.id);
-                      }}
+                      onClick={(e) => handleDeleteChat(e, chat.id)}
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                       className="opacity-0 group-hover:opacity-100 p-1.5 bg-red-50 hover:bg-red-100 rounded border border-red-200 transition-opacity"
@@ -185,3 +192,5 @@ export default function ChatSidebar({
     </>
   );
 }
+
+export default memo(ChatSidebar);

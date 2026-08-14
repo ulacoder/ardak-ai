@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic, Send, Trash2, Volume2, Sparkles, Image as ImageIcon, X, Loader2 } from 'lucide-react';
+import { Mic, Send, Trash2, Volume2, Sparkles, Image as ImageIcon, X, Loader2, Copy, Check } from 'lucide-react';
 import { useChatHistory } from './hooks/useChatHistory';
 import ChatSidebar from './components/ChatSidebar';
 
@@ -28,6 +28,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [audioInitialized, setAudioInitialized] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const recognitionRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -45,7 +46,7 @@ export default function Home() {
   }, [currentChatId, currentChat]);
 
   // Initialize audio on first user interaction (for mobile)
-  const initAudio = () => {
+  const initAudio = useCallback(() => {
     if (!audioInitialized) {
       console.log('Initializing audio context for mobile');
       if ('speechSynthesis' in window) {
@@ -61,7 +62,7 @@ export default function Home() {
       }
       setAudioInitialized(true);
     }
-  };
+  }, [audioInitialized]);
 
   useEffect(() => {
     setMounted(true);
@@ -137,7 +138,7 @@ export default function Home() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isLoading]);
+  }, [messages.length, isLoading]);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -148,7 +149,7 @@ export default function Home() {
     }
   }, [textInput]);
 
-  const sendMessage = async (text: string) => {
+  const sendMessage = useCallback(async (text: string) => {
     if (!text.trim()) return;
 
     initAudio();
@@ -203,16 +204,16 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentChatId, createNewChat, messages, selectedImage, initAudio, updateChatMessages]);
 
-  const handleTextSubmit = (e: React.FormEvent) => {
+  const handleTextSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (textInput.trim() || selectedImage) {
       sendMessage(textInput.trim() || 'Что на изображении?');
     }
-  };
+  }, [textInput, selectedImage, sendMessage]);
 
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -221,16 +222,16 @@ export default function Home() {
       };
       reader.readAsDataURL(file);
     }
-  };
+  }, []);
 
-  const removeImage = () => {
+  const removeImage = useCallback(() => {
     setSelectedImage(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-  };
+  }, []);
 
-  const speak = async (text: string) => {
+  const speak = useCallback(async (text: string) => {
     console.log('Starting TTS for:', text);
     setIsSpeaking(true);
 
@@ -375,9 +376,9 @@ export default function Home() {
       console.error('speechSynthesis not available');
       setIsSpeaking(false);
     }
-  };
+  }, []);
 
-  const stopSpeaking = () => {
+  const stopSpeaking = useCallback(() => {
     console.log('Stopping speech');
 
     if (audioRef.current) {
@@ -400,9 +401,9 @@ export default function Home() {
     }
 
     setIsSpeaking(false);
-  };
+  }, [isListening]);
 
-  const startListening = () => {
+  const startListening = useCallback(() => {
     initAudio();
     if (recognitionRef.current && !isListening) {
       stopSpeaking();
@@ -414,18 +415,28 @@ export default function Home() {
         setIsListening(false);
       }
     }
-  };
+  }, [isListening, initAudio, stopSpeaking]);
 
-  const stopListening = () => {
+  const stopListening = useCallback(() => {
     if (recognitionRef.current && isListening) {
       recognitionRef.current.stop();
       setIsListening(false);
     }
-  };
+  }, [isListening]);
 
-  const clearHistory = () => {
+  const clearHistory = useCallback(() => {
     if (currentChatId) {
       deleteChat(currentChatId);
+    }
+  }, [currentChatId, deleteChat]);
+
+  const copyToClipboard = async (text: string, index: number) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedIndex(index);
+      setTimeout(() => setCopiedIndex(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
     }
   };
 
@@ -524,6 +535,24 @@ export default function Home() {
                       <img src={msg.image} alt="User upload" className="mb-2 max-w-full h-auto rounded-lg" />
                     )}
                     <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{msg.content}</p>
+                    {msg.role === 'assistant' && (
+                      <button
+                        onClick={() => copyToClipboard(msg.content, idx)}
+                        className="mt-2 flex items-center gap-1.5 px-2.5 py-1 bg-white hover:bg-gray-50 text-gray-700 rounded-lg border border-gray-300 text-xs font-medium transition-colors"
+                      >
+                        {copiedIndex === idx ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>Скопировано</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5" />
+                            <span>Копировать</span>
+                          </>
+                        )}
+                      </button>
+                    )}
                   </div>
                 </motion.div>
               ))}
