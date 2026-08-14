@@ -1,4 +1,4 @@
-# Ardak AI - Voice Assistant
+# Isida AI - Voice Assistant
 
 AI-powered voice assistant with conversation memory, speech recognition, and vision capabilities using Google's Gemini 2.0.
 
@@ -51,7 +51,7 @@ Open [http://localhost:3000](http://localhost:3000)
 ## 📁 Project Structure
 
 ```
-ardak-ai/
+isida-ai/
 ├── app/
 │   ├── api/           # API routes
 │   ├── utils/         # Helper functions and services
