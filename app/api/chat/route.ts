@@ -1,6 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const TOKENROUTER_API_KEY = process.env.TOKENROUTER_API_KEY || 'sk-ddU1wojN99l16I6R5E2Bszbu17In6AgFIwtxNzHqh09uRDjr';
+const DASHSCOPE_API_KEY = process.env.DASHSCOPE_API_KEY || 'sk-ws-H.DMEIHME.CVOh.MEUCICMcX0z2RAlfZ_H8QyVNq6hsSYG9b9vNEQbIVzMT0zzzAiEAjEwtQ_Y5cCVPTE2gTu4WzohG56ixRjuUUtPRxeUStTE';
+const BASE_URL = 'https://ws-3z8ma1etfmntvskr.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1';
+
+// Detect if user question needs web search
+function needsWebSearch(message: string): boolean {
+  const lowerMsg = message.toLowerCase();
+
+  // Keywords that indicate need for current information
+  const searchTriggers = [
+    'сейчас', 'сегодня', 'вчера', 'завтра', 'текущий', 'актуальн',
+    'курс', 'цена', 'стоимость', 'стоит', 'погода', 'новости',
+    'последн', 'свежи', 'когда выйд', 'дата выхода', 'расписание',
+    'где купить', 'найди', 'поищи', 'погугли', 'в интернете'
+  ];
+
+  return searchTriggers.some(trigger => lowerMsg.includes(trigger));
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,7 +29,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ response: "Напиши что-нибудь..." });
     }
 
-    const systemPrompt = `Ты - Isida, умный и добрый AI-ассистент.
+    const systemPrompt = `Ты - Исида, умный и добрый AI-ассистент.
 
 АБСОЛЮТНЫЕ ПРАВИЛА (НАРУШЕНИЕ = ОШИБКА):
 1. Отвечай ИСКЛЮЧИТЕЛЬНО на русском языке. НИ ОДНОГО слова на английском, китайском или других языках.
@@ -36,14 +52,19 @@ export async function POST(req: NextRequest) {
 ЗАПОМИНАЙ: У тебя есть полная история разговора ниже. ВСЕГДА учитывай всю информацию из предыдущих сообщений.
 Общайся тепло, дружелюбно и эмоционально, но коротко и по делу.`;
 
-    const recentMessages = messages.slice(-50); // Last 50 messages for context
+    const recentMessages = messages.slice(-50);
 
-    // Build messages for TokenRouter (OpenAI-compatible format)
-    const tokenRouterMessages = [
+    // Check if last user message needs web search
+    const lastUserMessage = recentMessages.filter((m: any) => m.role === 'user').pop();
+    const enableWebSearch = lastUserMessage && needsWebSearch(lastUserMessage.content);
+
+    console.log('🌐 Web search enabled:', enableWebSearch);
+
+    // Build messages for Alibaba Model Studio
+    const apiMessages = [
       { role: 'system', content: systemPrompt },
       ...recentMessages.map((msg: any) => {
         if (msg.role === 'user' && msg.image) {
-          // TokenRouter supports vision via content array
           return {
             role: 'user',
             content: [
@@ -56,25 +77,34 @@ export async function POST(req: NextRequest) {
       })
     ];
 
-    const response = await fetch('https://api.tokenrouter.com/v1/chat/completions', {
+    const requestBody: any = {
+      model: 'qwen3.5-flash',
+      messages: apiMessages,
+      temperature: 0.9,
+      max_tokens: 2000,
+      stream: false
+    };
+
+    // Enable web_search only when needed
+    if (enableWebSearch) {
+      requestBody.extra_body = {
+        tools: [{ type: 'web_search' }]
+      };
+    }
+
+    const response = await fetch(`${BASE_URL}/chat/completions`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${TOKENROUTER_API_KEY}`,
+        'Authorization': `Bearer ${DASHSCOPE_API_KEY}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        model: 'qwen/qwen3.8-max-free',
-        messages: tokenRouterMessages,
-        temperature: 0.9,
-        max_tokens: 2000,
-        stream: false
-      })
+      body: JSON.stringify(requestBody)
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('TokenRouter error:', errorData);
-      throw new Error(errorData.error?.message || JSON.stringify(errorData) || 'TokenRouter API error');
+      console.error('Alibaba Model Studio error:', errorData);
+      throw new Error(errorData.error?.message || JSON.stringify(errorData) || 'Alibaba API error');
     }
 
     const data = await response.json();
@@ -86,10 +116,10 @@ export async function POST(req: NextRequest) {
 
     // Remove reasoning blocks and other artifacts
     aiResponse = aiResponse
-      .replace(/^\n+/, '') // Remove leading newlines
-      .replace(/Here's a thinking process:[\s\S]*?(?=\n\n|$)/gi, '') // Remove thinking blocks
-      .replace(/Thinking Process:[\s\S]*?(?=\n\n|$)/gi, '') // Remove thinking blocks variant
-      .replace(/^\d+\.\s+\*\*[^*]+\*\*:[\s\S]*?(?=\n\d+\.|\n\n|$)/gm, '') // Remove numbered reasoning steps
+      .replace(/^\n+/, '')
+      .replace(/Here's a thinking process:[\s\S]*?(?=\n\n|$)/gi, '')
+      .replace(/Thinking Process:[\s\S]*?(?=\n\n|$)/gi, '')
+      .replace(/^\d+\.\s+\*\*[^*]+\*\*:[\s\S]*?(?=\n\d+\.|\n\n|$)/gm, '')
       .trim();
 
     return NextResponse.json({ response: aiResponse });
