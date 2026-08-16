@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const DASHSCOPE_API_KEY = process.env.DASHSCOPE_API_KEY || 'sk-ws-H.DMEIHME.CVOh.MEUCICMcX0z2RAlfZ_H8QyVNq6hsSYG9b9vNEQbIVzMT0zzzAiEAjEwtQ_Y5cCVPTE2gTu4WzohG56ixRjuUUtPRxeUStTE';
 const BASE_URL = 'https://ws-3z8ma1etfmntvskr.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1';
+const ISIDA_PASSWORD = process.env.ISIDA_PASSWORD || 'OTVkOWQxODktZjQ5Ni00YmNl';
+
+// Simple in-memory usage tracking
+const dailyUsage = new Map<string, number>();
 
 // Detect if user question needs web search
 function needsWebSearch(message: string): boolean {
@@ -20,9 +24,31 @@ function needsWebSearch(message: string): boolean {
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages } = await req.json();
+    const { messages, password } = await req.json();
+
+    // 1. Check password
+    if (password !== ISIDA_PASSWORD) {
+      console.log('❌ Invalid password attempt');
+      return NextResponse.json(
+        { error: 'Неверный пароль для доступа к Исиде' },
+        { status: 401 }
+      );
+    }
+
+    // 2. Rate limiting (150 messages per day)
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const currentUsage = dailyUsage.get(today) || 0;
+
+    if (currentUsage >= 150) {
+      console.log('⚠️ Daily limit reached:', currentUsage);
+      return NextResponse.json(
+        { error: 'Дневной лимит сообщений достигнут (150/день). Попробуй завтра!' },
+        { status: 429 }
+      );
+    }
 
     console.log('📨 Received messages count:', messages?.length);
+    console.log('📊 Usage today:', currentUsage + 1, '/ 150');
     console.log('📜 Last 3 messages:', messages?.slice(-3));
 
     if (!messages || messages.length === 0) {
@@ -121,6 +147,9 @@ export async function POST(req: NextRequest) {
       .replace(/Thinking Process:[\s\S]*?(?=\n\n|$)/gi, '')
       .replace(/^\d+\.\s+\*\*[^*]+\*\*:[\s\S]*?(?=\n\d+\.|\n\n|$)/gm, '')
       .trim();
+
+    // 3. Update usage counter AFTER successful response
+    dailyUsage.set(today, currentUsage + 1);
 
     return NextResponse.json({ response: aiResponse });
 

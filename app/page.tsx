@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic, Send, Trash2, Volume2, Sparkles, Image as ImageIcon, X, Loader2, Copy, Check } from 'lucide-react';
+import { Mic, Send, Trash2, Volume2, Sparkles, Image as ImageIcon, X, Loader2, Copy, Check, Square } from 'lucide-react';
 import { useChatHistory } from './hooks/useChatHistory';
 import ChatSidebar from './components/ChatSidebar';
 
@@ -29,6 +29,8 @@ export default function Home() {
   const [audioInitialized, setAudioInitialized] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [password, setPassword] = useState<string | null>(null);
+  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
   const recognitionRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -67,6 +69,14 @@ export default function Home() {
   useEffect(() => {
     setMounted(true);
 
+    // Check for saved password
+    const savedPassword = localStorage.getItem('isida_password');
+    if (savedPassword) {
+      setPassword(savedPassword);
+    } else {
+      setShowPasswordPrompt(true);
+    }
+
     // Create initial chat if none exists
     if (chats.length === 0) {
       createNewChat();
@@ -101,20 +111,9 @@ export default function Home() {
           }
         }
 
-        setTranscript(finalTranscript + interimText);
-
-        clearTimeout(silenceTimer);
-
-        if (finalTranscript.trim()) {
-          silenceTimer = setTimeout(() => {
-            if (finalTranscript.trim()) {
-              recognitionRef.current?.stop();
-              setIsListening(false);
-              sendMessage(finalTranscript.trim());
-              finalTranscript = '';
-            }
-          }, 800);
-        }
+        const fullText = finalTranscript + interimText;
+        setTranscript(fullText);
+        setTextInput(fullText);
       };
 
       recognitionRef.current.onerror = (event: any) => {
@@ -124,6 +123,12 @@ export default function Home() {
 
       recognitionRef.current.onend = () => {
         setIsListening(false);
+        // Keep the transcribed text in the input field
+        if (finalTranscript.trim()) {
+          setTextInput(finalTranscript.trim());
+          setTranscript('');
+          finalTranscript = '';
+        }
       };
     }
 
@@ -176,13 +181,17 @@ export default function Home() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: newMessages })
+        body: JSON.stringify({ messages: newMessages, password })
       });
 
       const data = await res.json();
 
       if (data.error) {
         throw new Error(data.error);
+      }
+
+      if (!data.response || data.response.trim() === '') {
+        throw new Error('AI не дал ответ. Попробуйте еще раз.');
       }
 
       const aiMessage = { role: 'assistant', content: data.response };
@@ -196,10 +205,19 @@ export default function Home() {
       }
 
       await speak(data.response);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Send message error:', err);
-      if (!(err instanceof DOMException && err.name === 'QuotaExceededError')) {
-        alert('Ошибка: ' + err);
+
+      // Show error message in chat instead of alert
+      const errorMessage = {
+        role: 'assistant',
+        content: `❌ Ошибка: ${err.message || 'Что-то пошло не так. Попробуйте еще раз.'}`
+      };
+      const errorMessages = [...newMessages, errorMessage];
+      setMessages(errorMessages);
+
+      if (chatId) {
+        updateChatMessages(chatId, errorMessages);
       }
     } finally {
       setIsLoading(false);
@@ -209,7 +227,9 @@ export default function Home() {
   const handleTextSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (textInput.trim() || selectedImage) {
-      sendMessage(textInput.trim() || 'Что на изображении?');
+      const messageToSend = textInput.trim() || 'Что на изображении?';
+      setTextInput(''); // Clear immediately before sending
+      sendMessage(messageToSend);
     }
   }, [textInput, selectedImage, sendMessage]);
 
@@ -235,11 +255,20 @@ export default function Home() {
     console.log('Starting TTS for:', text);
     setIsSpeaking(true);
 
+    // Clean text for TTS: remove URLs and problematic characters
+    let cleanText = text
+      .replace(/https?:\/\/[^\s]+/g, '') // Remove URLs
+      .replace(/[—–]/g, '-') // Replace em-dash/en-dash with regular dash
+      .replace(/[«»""]/g, '"') // Replace smart quotes with regular quotes
+      .replace(/…/g, '...') // Replace ellipsis
+      .replace(/\s+/g, ' ') // Normalize spaces
+      .trim();
+
     try {
       const response = await fetch('/api/tts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text })
+        body: JSON.stringify({ text: cleanText })
       });
 
       console.log('TTS response status:', response.status);
@@ -440,8 +469,117 @@ export default function Home() {
     }
   };
 
+  // Helper function to parse and linkify message content
+  const renderMessageContent = (content: string, isUser: boolean) => {
+    // Parse markdown links [text](url) and plain URLs
+    const parts: Array<{ type: 'text' | 'link'; content: string; url?: string }> = [];
+
+    // Combined regex for markdown links and plain URLs
+    const combinedRegex = /\[([^\]]+)\]\(([^)]+)\)|https?:\/\/[^\s]+/g;
+    let lastIndex = 0;
+    let match;
+
+    while ((match = combinedRegex.exec(content)) !== null) {
+      // Add text before the match
+      if (match.index > lastIndex) {
+        parts.push({ type: 'text', content: content.slice(lastIndex, match.index) });
+      }
+
+      if (match[1] && match[2]) {
+        // Markdown link [text](url)
+        parts.push({ type: 'link', content: match[1], url: match[2] });
+      } else {
+        // Plain URL
+        parts.push({ type: 'link', content: match[0], url: match[0] });
+      }
+
+      lastIndex = match.index + match[0].length;
+    }
+
+    // Add remaining text
+    if (lastIndex < content.length) {
+      parts.push({ type: 'text', content: content.slice(lastIndex) });
+    }
+
+    return (
+      <span className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+        {parts.map((part, i) =>
+          part.type === 'link' ? (
+            <a
+              key={i}
+              href={part.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`underline hover:no-underline ${
+                isUser ? 'text-white' : 'text-emerald-600'
+              }`}
+            >
+              {part.content}
+            </a>
+          ) : (
+            <span key={i}>{part.content}</span>
+          )
+        )}
+      </span>
+    );
+  };
+
   return (
     <div className="min-h-[100dvh] bg-white relative overflow-hidden font-sans flex">
+      {/* Password Prompt Modal */}
+      {showPasswordPrompt && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full"
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <Image
+                src="/logo.jpeg"
+                alt="Isida AI Logo"
+                width={48}
+                height={48}
+                className="rounded-full"
+              />
+              <h2 className="text-2xl font-bold text-gray-900">Исида AI</h2>
+            </div>
+            <p className="text-gray-600 mb-6">
+              Введи пароль для доступа к Исиде:
+            </p>
+            <input
+              type="password"
+              placeholder="Введи пароль..."
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-emerald-500 focus:outline-none mb-4"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const input = e.currentTarget.value.trim();
+                  if (input) {
+                    setPassword(input);
+                    localStorage.setItem('isida_password', input);
+                    setShowPasswordPrompt(false);
+                  }
+                }
+              }}
+              autoFocus
+            />
+            <button
+              onClick={(e) => {
+                const input = (e.currentTarget.previousElementSibling as HTMLInputElement)?.value.trim();
+                if (input) {
+                  setPassword(input);
+                  localStorage.setItem('isida_password', input);
+                  setShowPasswordPrompt(false);
+                }
+              }}
+              className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3 rounded-xl transition-colors"
+            >
+              Войти
+            </button>
+          </motion.div>
+        </div>
+      )}
+
       {/* Chat Sidebar */}
       <ChatSidebar
         chats={chats}
@@ -534,7 +672,7 @@ export default function Home() {
                     {msg.image && (
                       <img src={msg.image} alt="User upload" className="mb-2 max-w-full h-auto rounded-lg" />
                     )}
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{msg.content}</p>
+                    {renderMessageContent(msg.content, msg.role === 'user')}
                     {msg.role === 'assistant' && (
                       <button
                         onClick={() => copyToClipboard(msg.content, idx)}
@@ -691,7 +829,7 @@ export default function Home() {
                 />
               </div>
 
-              {/* Microphone Button */}
+              {/* Microphone/Stop Button */}
               <motion.button
                 type="button"
                 onClick={isListening ? stopListening : startListening}
@@ -703,7 +841,11 @@ export default function Home() {
                     : 'bg-gray-100 hover:bg-gray-200 border border-gray-300'
                 }`}
               >
-                <Mic className={`w-5 h-5 ${isListening ? 'text-white' : 'text-gray-700'}`} />
+                {isListening ? (
+                  <Square className="w-5 h-5 text-white fill-white" />
+                ) : (
+                  <Mic className="w-5 h-5 text-gray-700" />
+                )}
               </motion.button>
 
               {/* Send Button */}
