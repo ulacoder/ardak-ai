@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const DASHSCOPE_API_KEY = process.env.DASHSCOPE_API_KEY || 'sk-ws-H.DMEIHME.CVOh.MEUCICMcX0z2RAlfZ_H8QyVNq6hsSYG9b9vNEQbIVzMT0zzzAiEAjEwtQ_Y5cCVPTE2gTu4WzohG56ixRjuUUtPRxeUStTE';
 const BASE_URL = 'https://ws-3z8ma1etfmntvskr.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1';
-const ISIDA_PASSWORD = process.env.ISIDA_PASSWORD || 'OTVkOWQxODktZjQ5Ni00YmNl';
 
 // Simple in-memory usage tracking
 const dailyUsage = new Map<string, number>();
@@ -24,18 +23,9 @@ function needsWebSearch(message: string): boolean {
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages, password } = await req.json();
+    const { messages } = await req.json();
 
-    // 1. Check password
-    if (password !== ISIDA_PASSWORD) {
-      console.log('❌ Invalid password attempt');
-      return NextResponse.json(
-        { error: 'Неверный пароль для доступа к Исиде' },
-        { status: 401 }
-      );
-    }
-
-    // 2. Rate limiting (150 messages per day)
+    // Rate limiting (150 messages per day)
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
     const currentUsage = dailyUsage.get(today) || 0;
 

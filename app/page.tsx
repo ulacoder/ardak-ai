@@ -29,8 +29,6 @@ export default function Home() {
   const [audioInitialized, setAudioInitialized] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
-  const [password, setPassword] = useState<string | null>(null);
-  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
   const recognitionRef = useRef<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -68,14 +66,6 @@ export default function Home() {
 
   useEffect(() => {
     setMounted(true);
-
-    // Check for saved password
-    const savedPassword = localStorage.getItem('isida_password');
-    if (savedPassword) {
-      setPassword(savedPassword);
-    } else {
-      setShowPasswordPrompt(true);
-    }
 
     // Create initial chat if none exists
     if (chats.length === 0) {
@@ -181,7 +171,7 @@ export default function Home() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: newMessages, password })
+        body: JSON.stringify({ messages: newMessages })
       });
 
       const data = await res.json();
@@ -526,60 +516,6 @@ export default function Home() {
 
   return (
     <div className="min-h-[100dvh] bg-white relative overflow-hidden font-sans flex">
-      {/* Password Prompt Modal */}
-      {showPasswordPrompt && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full"
-          >
-            <div className="flex items-center gap-3 mb-6">
-              <Image
-                src="/logo.jpeg"
-                alt="Isida AI Logo"
-                width={48}
-                height={48}
-                className="rounded-full"
-              />
-              <h2 className="text-2xl font-bold text-gray-900">Исида AI</h2>
-            </div>
-            <p className="text-gray-600 mb-6">
-              Введи пароль для доступа к Исиде:
-            </p>
-            <input
-              type="password"
-              placeholder="Введи пароль..."
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-emerald-500 focus:outline-none mb-4"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  const input = e.currentTarget.value.trim();
-                  if (input) {
-                    setPassword(input);
-                    localStorage.setItem('isida_password', input);
-                    setShowPasswordPrompt(false);
-                  }
-                }
-              }}
-              autoFocus
-            />
-            <button
-              onClick={(e) => {
-                const input = (e.currentTarget.previousElementSibling as HTMLInputElement)?.value.trim();
-                if (input) {
-                  setPassword(input);
-                  localStorage.setItem('isida_password', input);
-                  setShowPasswordPrompt(false);
-                }
-              }}
-              className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3 rounded-xl transition-colors"
-            >
-              Войти
-            </button>
-          </motion.div>
-        </div>
-      )}
-
       {/* Chat Sidebar */}
       <ChatSidebar
         chats={chats}
